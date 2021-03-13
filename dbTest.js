@@ -1,3 +1,4 @@
+const { rejects } = require("assert");
 const { findSourceMap } = require("module");
 const mongoose = require("mongoose");
 
@@ -15,22 +16,40 @@ mongoose
     });
 
 const schemaCourse = new mongoose.Schema({
-    name: { type: String, required: true },
-    tags: [String],
-    teacher: String,
+    name: { type: String, required: true, minLength: 3, maxLength: 50 },
+    //tags: [String],
+    tags: [{ type: String, enum: ["nodejs", "reactjs"] }],
+    teacher: {
+        type: String,
+        validate: {
+            validator: function (input) {
+                // new Promise((resolve, reject) => {
+                //     setTimeout(() => {
+                //         resolve(input.startsWith("مدرس"))
+                //     }, 2000)
+                // });
+                    return input.startsWith("مدرس")
+            },
+            message: "teacher's name must start with modares!!"
+        }
+    },
     publishDate: { type: Date, default: Date.now },
-    completed: { type: Boolean, default: false },
-    price: Number
+    completed: { type: Boolean, default: true },
+    price: {
+        type: Number, required: function () {
+            return this.completed
+        }
+    }
 });
 
 const CourseModel = mongoose.model('course', schemaCourse);
 
 const newCourse = new CourseModel({
     name: "آموزش جامع نود 5",
-    tags: ['node js', 'js'],
+    tags: ['nodejs', "js"],
     teacher: "ali golshan",
-    completed: true,
-    price: 300000
+    completed: false,
+    //price: 300000
 });
 
 // newCourse
@@ -43,10 +62,16 @@ const newCourse = new CourseModel({
 //     });
 
 async function createCourse() {
-    const savedCourse = await newCourse.save();
-    console.log("course saved", savedCourse);
+    try {
+        const savedCourse = await newCourse.save();
+        console.log("course saved", savedCourse);
+    } catch (err) {
+        for (const field in err.errors) {
+            console.log(err.errors[field].message)
+        }
+    }
 }
-//createCourse();
+createCourse();
 
 async function getCourseList() {
     // const courseList = await CourseModel.find();
@@ -97,13 +122,13 @@ async function getCourseList() {
 
 
 // approach 1
-// async function updateCourseName(id, name) {
-//     const course = await CourseModel.findById(id);
-//     if (!course) return;
-//     course.name = name;
-//     console.log(await course.save());
+async function updateCourseName(id, name) {
+    const course = await CourseModel.findById(id);
+    if (!course) return;
+    course.name = name;
+    console.log(await course.save());
 
-// }
+}
 // updateCourseName("604cd07b794b514bbc595742", "mgbg");
 
 //approach 2
@@ -121,13 +146,18 @@ async function updateCourseName(id, name) {
     // console.log(result)
 
     const result = await CourseModel.findByIdAndUpdate(id, {
-            $set: {
-                name: name
-            },
+        $set: {
+            name: name
         },
-        {new: true} // وقتی که آپدیت کردی خروجی جدید رو نشون بده نه اینکه همون قبلی
+    },
+        { new: true } // وقتی که آپدیت کردی خروجی جدید رو نشون بده نه اینکه همون قبلی
     );
     console.log(result)
 }
 
-updateCourseName("604ccffd0ef6625664180434", "Mohammad Golshan 3");
+//updateCourseName("604ccffd0ef6625664180434", "Mohammad Golshan 3");
+
+async function deleteCourse(id) {
+    console.log(await CourseModel.findByIdAndDelete(id))
+}
+// deleteCourse("604ccffd0ef6625664180434")
