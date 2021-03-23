@@ -6,8 +6,12 @@ const config = require("config");
 const morgan = require('morgan');
 const debugConfiguration = require("debug")("app:configuration")
 const debugDB = require("debug")("app:Db");
-const CustomerRoutes = require("./routes/CustomerRoutes")
-const HomeRoutes = require("./routes/HomeRoutes");
+
+// Routes
+const ScreamRoutes = require("./routes/ScreamRoutes")
+const UserRoutes = require("./routes/UserRoutes")
+
+
 const Logger = require("./middleware/Logger");
 const SaeedForbiddenAuth = require("./middleware/SaeedForbiddenAuth");
 const app = express();
@@ -34,8 +38,9 @@ app.use(Logger);
 app.use(SaeedForbiddenAuth);
 
 //routes
-app.use(CustomerRoutes);
-app.use(HomeRoutes);
+app.use(UserRoutes);
+app.use(ScreamRoutes);
+
 
 // configuration
 //console.log(config.get("databaseAddress"));
@@ -44,7 +49,7 @@ app.set("view engine", "pug");
 app.set("views", "./views"); // default
 
 mongoose
-  .connect("mongodb://localhost:27017", {
+  .connect("mongodb://localhost:27017/screams", {
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
@@ -52,11 +57,12 @@ mongoose
     console.log("db connected");
   })
   .catch(err => {
-    console.error("db not connected !!", err)
+    console.error("db not connected!!", err)
   })
 
 const port = process.env.myPort || 3000;
 app.listen(port, (err) => {
   if (err) console.log(err)
   else console.log(`app listen to port ${port}`);
-})
+});
+
