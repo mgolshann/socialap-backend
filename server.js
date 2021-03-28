@@ -19,7 +19,7 @@ const app = express();
 // built-in middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
+app.use(express.static("./public"));
 
 if (app.get("env") === "production")
   app.use(morgan('tiny'));
